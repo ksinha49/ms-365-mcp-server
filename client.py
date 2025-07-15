@@ -74,7 +74,8 @@ class M365Agent:
             print('\n[AGENT] --- Initiating Login ---')
             # The tool name is 'login'. fastmcp creates a method with this name.
             login_result = await self.mcp_client.login(force=True)
-            
+
+            login_message = ""
             if login_result and login_result.get('content') and login_result['content'][0].get('text'):
                 login_message = login_result['content'][0]['text']
                 print("\n" + "="*50)
@@ -95,7 +96,7 @@ class M365Agent:
             if verification.get('success'):
                 user_name = verification.get('userData', {}).get('displayName', 'Unknown User')
                 print(f"[AGENT] Login verification successful for: {user_name}")
-                return f"Successfully connected and authenticated to Microsoft 365 as {user_name}."
+                return login_message + f"\nSuccessfully connected as {user_name}."
             else:
                 raise Exception(f"Login verification failed: {verification.get('message', 'No message.')}")
         except httpx.HTTPStatusError as e:
