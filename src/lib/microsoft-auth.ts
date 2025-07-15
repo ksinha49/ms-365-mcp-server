@@ -13,7 +13,11 @@ export const microsoftBearerTokenAuthMiddleware = (
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    res.status(401).json({ error: 'Missing or invalid access token' });
+    res.status(401).json({
+      error: 'Missing or invalid access token',
+      hint:
+        'If you intended to login via device code, start the server with --enable-auth-tools.'
+    });
     return;
   }
   
