@@ -299,15 +299,29 @@ class MicrosoftGraphServer {
       );
 
       // Microsoft Graph MCP endpoints with bearer token auth
-      app.post('/mcp', microsoftBearerTokenAuthMiddleware, async (req: any, res) => {
-        try {
-          // Set OAuth tokens in the GraphClient if available
-          if (req.microsoftAuth) {
-            this.graphClient.setOAuthTokens(
-              req.microsoftAuth.accessToken, 
-              req.microsoftAuth.refreshToken
-            );
+      app.post(
+        '/mcp',
+        (req: any, res, next) => {
+          const toolName =
+            req.body?.method === 'tools/call' ? req.body?.params?.name : undefined;
+          if (
+            this.options.enableAuthTools &&
+            toolName &&
+            ['login', 'logout', 'verify-login'].includes(toolName)
+          ) {
+            return next();
           }
+          return microsoftBearerTokenAuthMiddleware(req, res, next);
+        },
+        async (req: any, res) => {
+          try {
+            // Set OAuth tokens in the GraphClient if available
+            if (req.microsoftAuth) {
+              this.graphClient.setOAuthTokens(
+                req.microsoftAuth.accessToken,
+                req.microsoftAuth.refreshToken
+              );
+            }
 
           const transport = new StreamableHTTPServerTransport({
             sessionIdGenerator: undefined, // Stateless mode
