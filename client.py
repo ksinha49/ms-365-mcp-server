@@ -98,6 +98,21 @@ class M365Agent:
                 return f"Successfully connected and authenticated to Microsoft 365 as {user_name}."
             else:
                 raise Exception(f"Login verification failed: {verification.get('message', 'No message.')}")
+        except httpx.HTTPStatusError as e:
+            if e.response is not None and e.response.status_code == 401:
+                msg = (
+                    "Authentication failed (401). Ensure the server was started with --enable-auth-tools or supply a valid Authorization token."
+                )
+                print(f"[AGENT] {msg}")
+                await self.disconnect()
+                return msg
+            print(
+                f"[AGENT] HTTP error during connection/authentication: {e.response.status_code}"
+            )
+            await self.disconnect()
+            return (
+                f"Failed to connect and authenticate. HTTP error {e.response.status_code}: {e.response.text}"
+            )
         except Exception as e:
             print(f"[AGENT] Error during connection/authentication: {e}")
             await self.disconnect()
